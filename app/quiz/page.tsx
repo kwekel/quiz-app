@@ -4,13 +4,14 @@ import quizAPI from "@/api/quizAPI";
 import { useEffect, useState, useRef } from "react";
 import { useTimer } from "@/hooks/useTimer";
 import { Spinner } from "@heroui/spinner";
-import QuizCard from "@/components/quiz-card";
+import QuizCard from "@/components/quizCard";
 import { RadioGroup, Radio } from "@heroui/radio";
 import type { RadioVariantProps } from "@heroui/theme/dist/components/radio";
-import TopParticipantRow from "@/components/top-participant";
+import TopParticipantRow from "@/components/topParticipant";
 import { TopParticipant } from "@/types/topParticipant";
 import { Button } from "@heroui/button";
 import { Question } from "@/types/question";
+import { Option } from "@/types/option";
 
 export default function QuizPage({}) {
   const QUESTION_TIME = 20000;
@@ -19,7 +20,7 @@ export default function QuizPage({}) {
   const [error, setError] = useState<string>("");
   const [showTopParticipants, setShowTopParticipants] =
     useState<boolean>(false);
-  const [topParticipants, setTopParticipants] = useState<any>([]);
+  const [topParticipants, setTopParticipants] = useState<TopParticipant[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
   const quizRef = useRef<Question[]>([]);
@@ -27,6 +28,11 @@ export default function QuizPage({}) {
   const selectedOptionRef = useRef<string>("");
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [showFinalResults, setShowFinalResults] = useState<boolean>(false);
+
+  const getCorrectOption = (): Option | undefined =>
+    quiz[currentQuestionIndex]?.options.find(
+      (option: Option) => option.isCorrect
+    );
 
   const handleTimerComplete = () => {
     checkResult();
@@ -63,11 +69,7 @@ export default function QuizPage({}) {
   };
 
   const checkResult = () => {
-    if (
-      quizRef.current[currentQuestionIndexRef.current].options.find(
-        (option: any) => option.isCorrect
-      )?.option === selectedOptionRef.current
-    ) {
+    if (getCorrectOption()?.option === selectedOptionRef.current) {
       setScore(oldProp => oldProp + 1);
     }
   };
@@ -101,7 +103,7 @@ export default function QuizPage({}) {
   };
 
   const getSelectColor = (
-    option: any
+    option: Option
   ): {
     herouiClass: RadioVariantProps["color"];
     tailwindClass: string;
@@ -116,31 +118,18 @@ export default function QuizPage({}) {
   };
 
   const buildCorrectAnswerContainer = () => {
-    if (timeLeft > 0) return <></>
-    if (
-      selectedOptionRef.current !==
-        quiz[currentQuestionIndex].options.find(
-          (option: any) => option.isCorrect
-        )?.option
-    )
+    if (timeLeft > 0) return null;
+
+    const correctAnswer = getCorrectOption();
+    if (selectedOptionRef.current !== correctAnswer?.option)
       return (
         <p className="text-sm text-danger">
           The correct answer is:{" "}
-          <span className="font-bold">
-            {
-              quiz[currentQuestionIndex].options.find(
-                (option: any) => option.isCorrect
-              )?.option
-            }
-          </span>
+          <span className="font-bold">{correctAnswer?.option}</span>
         </p>
       );
-    return <p className="text-sm text-success">Correct answer</p>
+    return <p className="text-sm text-success">Correct answer</p>;
   };
-
-  useEffect(() => {
-    fetchQuizData();
-  }, []);
 
   useEffect(() => {
     fetchQuizData();
@@ -178,17 +167,15 @@ export default function QuizPage({}) {
     return (
       <QuizCard header={<h1>Top participants</h1>}>
         <>
-          {topParticipants.map(
-            (topParticipant: TopParticipant, index: number) => (
-              <TopParticipantRow
-                key={topParticipant.name}
-                index={index + 1}
-                score={topParticipant.score}
-                name={topParticipant.name}
-                totalQuestions={currentQuestionIndexRef.current + 1}
-              />
-            )
-          )}
+          {topParticipants.map((topParticipant, index: number) => (
+            <TopParticipantRow
+              key={topParticipant.name}
+              index={index + 1}
+              score={topParticipant.score}
+              name={topParticipant.name}
+              totalQuestions={currentQuestionIndexRef.current + 1}
+            />
+          ))}
         </>
         <Button
           color="primary"
@@ -230,7 +217,7 @@ export default function QuizPage({}) {
           }}
           value={selectedOption}
         >
-          {quiz[currentQuestionIndex].options.map((option: any) => (
+          {quiz[currentQuestionIndex].options.map((option: Option) => (
             <Radio
               key={`${currentQuestionIndex}-${option.option}`}
               color={getSelectColor(option).herouiClass}

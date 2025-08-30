@@ -1,4 +1,4 @@
-import QuizCard from "@/components/quiz-card";
+import QuizCard from "@/components/quizCard";
 import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
 
@@ -13,7 +13,12 @@ export default function Home() {
             seconds to answer each question. You can answer them and see your
             score at the end.
           </p>
-          <Button color="primary" className="w-fit mt-4" as={Link} href={"/quiz"}>
+          <Button
+            color="primary"
+            className="w-fit mt-4"
+            as={Link}
+            href={"/quiz"}
+          >
             Start Quiz
           </Button>
         </>
