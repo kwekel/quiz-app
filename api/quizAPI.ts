@@ -1,5 +1,5 @@
 import { Question } from "@/types/question";
-import { TopParticipant } from "@/types/top-participant";
+import { TopParticipant } from "@/types/topParticipant";
 
 const quizAPI = {
   getQuizData: async (): Promise<{ success: boolean; data: Question[] }> => {

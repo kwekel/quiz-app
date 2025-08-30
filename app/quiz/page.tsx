@@ -2,31 +2,42 @@
 
 import quizAPI from "@/api/quizAPI";
 import { useEffect, useState, useRef } from "react";
+import { useTimer } from "@/hooks/useTimer";
 import { Spinner } from "@heroui/spinner";
 import QuizCard from "@/components/quiz-card";
 import { RadioGroup, Radio } from "@heroui/radio";
 import type { RadioVariantProps } from "@heroui/theme/dist/components/radio";
 import TopParticipantRow from "@/components/top-participant";
-import { TopParticipant } from "@/types/top-participant";
+import { TopParticipant } from "@/types/topParticipant";
 import { Button } from "@heroui/button";
+import { Question } from "@/types/question";
 
 export default function QuizPage({}) {
   const QUESTION_TIME = 20000;
-  const [quiz, setQuiz] = useState<any>(null);
+  const [quiz, setQuiz] = useState<Question[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  const [timeLeft, setTimeLeft] = useState<number>(QUESTION_TIME / 1000);
   const [showTopParticipants, setShowTopParticipants] =
     useState<boolean>(false);
   const [topParticipants, setTopParticipants] = useState<any>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
-  const quizRef = useRef<any>(null);
+  const quizRef = useRef<Question[]>([]);
   const currentQuestionIndexRef = useRef<number>(0);
   const selectedOptionRef = useRef<string>("");
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [showFinalResults, setShowFinalResults] = useState<boolean>(false);
+
+  const handleTimerComplete = () => {
+    checkResult();
+    fetchTopParticipants();
+  };
+
+  const { timeLeft, stopTimer, resetTimer, restartTimer } = useTimer({
+    duration: QUESTION_TIME,
+    quiz,
+    onComplete: handleTimerComplete,
+  });
 
   const fetchQuizData = async () => {
     const quizData = await quizAPI.getQuizData();
@@ -66,38 +77,19 @@ export default function QuizPage({}) {
     setCurrentQuestionIndex(0);
     currentQuestionIndexRef.current = 0;
     setSelectedOption("");
-    setTimeLeft(QUESTION_TIME / 1000);
+    resetTimer();
     setShowTopParticipants(false);
     setShowFinalResults(false);
-    startTimer(QUESTION_TIME / 1000);
-  };
-
-  const stopTimer = () => {
-    setTimeLeft(0);
-    checkResult();
-    fetchTopParticipants();
-    clearInterval(timerRef.current!);
-    timerRef.current = null;
-  };
-
-  const startTimer = (time: number) => {
-    let currentTime = time;
-    timerRef.current = setInterval(() => {
-      currentTime = currentTime - 1;
-      setTimeLeft(oldProp => oldProp - 1);
-      if (currentTime <= 0) {
-        stopTimer();
-      }
-    }, 1000);
+    restartTimer();
   };
 
   const handleNextQuestion = () => {
     setCurrentQuestionIndex(oldProp => oldProp + 1);
     setSelectedOption("");
     currentQuestionIndexRef.current = currentQuestionIndex + 1;
-    setTimeLeft(QUESTION_TIME / 1000);
+    resetTimer();
     setShowTopParticipants(false);
-    startTimer(QUESTION_TIME / 1000);
+    restartTimer();
   };
 
   const handleShowFinalResults = () => {
@@ -150,10 +142,8 @@ export default function QuizPage({}) {
   }, []);
 
   useEffect(() => {
-    if (quiz) {
-      startTimer(QUESTION_TIME / 1000);
-    }
-  }, [quiz]);
+    fetchQuizData();
+  }, []);
 
   if (loading) {
     return <Spinner />;
