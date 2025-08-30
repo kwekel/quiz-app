@@ -166,7 +166,7 @@ export default function QuizPage({}) {
   if (showTopParticipants) {
     return (
       <QuizCard header={<h1>Top participants</h1>}>
-        <>
+        <div className="flex flex-col gap-2">
           {topParticipants.map((topParticipant, index: number) => (
             <TopParticipantRow
               key={topParticipant.name}
@@ -176,7 +176,7 @@ export default function QuizPage({}) {
               totalQuestions={currentQuestionIndexRef.current + 1}
             />
           ))}
-        </>
+        </div>
         <Button
           color="primary"
           className="w-fit"
