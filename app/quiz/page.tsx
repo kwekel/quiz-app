@@ -116,15 +116,15 @@ export default function QuizPage({}) {
   };
 
   const buildCorrectAnswerContainer = () => {
+    if (timeLeft > 0) return <></>
     if (
       selectedOptionRef.current !==
         quiz[currentQuestionIndex].options.find(
           (option: any) => option.isCorrect
-        )?.option &&
-      timeLeft <= 0
+        )?.option
     )
       return (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-danger">
           The correct answer is:{" "}
           <span className="font-bold">
             {
@@ -135,6 +135,7 @@ export default function QuizPage({}) {
           </span>
         </p>
       );
+    return <p className="text-sm text-success">Correct answer</p>
   };
 
   useEffect(() => {

@@ -22,7 +22,7 @@ export default function QuizCard({ children, header }: QuizCardProps) {
         <Link
           isExternal
           showAnchorIcon
-          href="https://github.com/heroui-inc/heroui"
+          href="https://github.com/kwekel/quiz-app"
         >
           Visit source code on GitHub.
         </Link>
